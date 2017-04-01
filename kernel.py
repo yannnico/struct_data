@@ -36,3 +36,92 @@ class Kernel_A:
             return self.ret
         else:
             return self.ret-2
+
+
+class Kernel_B:
+    def __init__(self, dim, x_min, y_min, x_max, y_max):
+        self.x_min = x_min
+        self.y_min = y_min
+        self.x_max = x_max
+        self.y_max = y_max
+        self.s = (y_max-y_min) * (x_max-x_min)
+        self.dim = dim
+        self.ret = 0
+
+    def k_x_y(self, image, y, t, l, b, r):
+
+        if y == 0:
+            return 0
+
+        s1 = max((b-t), 0)*max((r-l), 0)
+
+        if s1 == 0:
+            return 0
+        s2 = self.s
+
+        s3 = (max(min(self.x_max, b) - max(self.x_min, t), 0)) * (max(min(self.y_max, r) - max(self.y_min, l), 0))
+
+        if s3 == 0:
+            return 0
+
+        if s2 + s1 - s3 == 0:
+            print("here")
+            print(s1)
+            print(s2)
+            print(s3)
+            print(min(self.x_max, b))
+            print(max(self.x_min, t))
+            print(min(self.y_max, r))
+            print(max(self.y_min, l))
+            return 0
+
+        if s3 > s1:
+            print("booh")
+
+        return s3 / s2
+
+    def k_x_y_m(self, image, y, t, l, b, r):
+
+        if y == 0:
+            return 0
+
+        s1 = max((b-t), 0)*max((r-l), 0)
+
+        if s1 == 0:
+            return 0
+        s2 = self.s
+
+        s3 = (max(min(self.x_max, b) - max(self.x_min, t), 0)) * (max(min(self.y_max, r) - max(self.y_min, l), 0))
+
+        if s3 == 0:
+            return 0
+
+        if s2 + s1 - s3 == 0:
+            print("here")
+            print(s1)
+            print(s2)
+            print(s3)
+            print(min(self.x_max, b))
+            print(max(self.x_min, t))
+            print(min(self.y_max, r))
+            print(max(self.y_min, l))
+            return 0
+
+        if s3 > s1:
+            print("booh")
+
+        return (s1 - s3) / (s2 + s1 - s3)
+
+    def k_x_ensemble(self, image, Y):
+        t, l, b, r = Y[0], Y[1], Y[2], Y[3]
+
+        x_m_m = t[0]
+        x_m_M = t[-1]
+        x_M_m = b[0]
+        x_M_M = b[-1]
+        y_m_m = l[0]
+        y_m_M = l[-1]
+        y_M_m = r[0]
+        y_M_M = r[-1]
+
+        return self.k_x_y(image, 1, x_m_m, y_m_m, x_M_M, y_M_M) - self.k_x_y_m(image, 1, x_m_M, y_m_M, x_M_m, y_M_m)

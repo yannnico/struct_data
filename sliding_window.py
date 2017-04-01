@@ -16,6 +16,8 @@ ap = argparse.ArgumentParser()
 # load the image and define the window width and height
 #image = cv2.imread(args["image"])
 image = cv2.imread('data/cows-images/cow-pic91-sml-lt.png')
+
+
 (winW, winH) = (32, 32)
 
 # loop over the image pyramid
