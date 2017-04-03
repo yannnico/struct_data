@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 
 from kernel import Kernel_B as Ker
+from kernel import ObjectifSVR as obj
 
 SZ = 20
 bin_n = 16  # Number of bins
@@ -18,12 +19,13 @@ def hog(img):
     gx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
     gy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
     mag, ang = cv2.cartToPolar(gx, gy)
-    bins = np.int32(bin_n*ang/(2*np.pi))    # quantizing binvalues in (0...16)
-    bin_cells = bins[:10,:10], bins[10:,:10], bins[:10,10:], bins[10:,10:]
-    mag_cells = mag[:10,:10], mag[10:,:10], mag[:10,10:], mag[10:,10:]
+    bins = np.int32(bin_n * ang / (2 * np.pi))  # quantizing binvalues in (0...16)
+    bin_cells = bins[:10, :10], bins[10:, :10], bins[:10, 10:], bins[10:, 10:]
+    mag_cells = mag[:10, :10], mag[10:, :10], mag[:10, 10:], mag[10:, 10:]
     hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
-    hist = np.hstack(hists)     # hist is a 64 bit vector
+    hist = np.hstack(hists)  # hist is a 64 bit vector
     return hist
+
 
 image = cv2.imread('data/cows-images/cow-pic91-sml-lt.png')
 (winW, winH) = (32, 32)
@@ -54,7 +56,7 @@ x_max = int(values[2])
 y_max = int(values[3])
 
 
-kr = Ker(10, x_min, y_min, x_max, y_max)
+kr = obj()
 
 print(sh)
 
@@ -70,8 +72,20 @@ while len(Pm[0]) > 1 or len(Pm[1]) > 1 or len(Pm[2]) > 1 or len(Pm[3]) > 1:
     P0[lm] = Pm[lm][:mid]
     P1[lm] = Pm[lm][mid:]
 
-    h0 = kr.k_x_ensemble(image, P0)
-    h1 = kr.k_x_ensemble(image, P1)
+    f0_max = hog(image[P0[0][0]:P0[2][-1], P0[1][0]:P0[3][-1]])
+    f1_max = hog(image[P1[0][0]:P1[2][-1], P1[1][0]:P1[3][-1]])
+
+    if P0[0][-1] < P0[2][0] and P0[1][0] < P0[3][-1]:
+        f0_min = hog(image[P0[0][-1]:P0[2][0], P0[1][-1]:P0[3][0]])
+        h0 = kr.f_plus(f0_max) + kr.f_moins(f0_min)
+    else:
+        h0 = kr.f_plus(f0_max)
+
+    if P0[0][-1] < P0[2][0] and P0[1][0] < P0[3][-1]:
+        f1_min = hog(image[P1[0][-1]:P1[2][0], P1[1][-1]:P1[3][0]])
+        h1 = kr.f_plus(f1_max) + kr.f_moins(f1_min)
+    else:
+        h1 = kr.f_plus(f1_max)
 
     P.append(P0)
     P.append(P1)

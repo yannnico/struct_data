@@ -1,5 +1,5 @@
 import numpy as np
-
+import h5py
 
 class Kernel_A:
     def __init__(self, dim, weight):
@@ -125,3 +125,21 @@ class Kernel_B:
         y_M_M = r[-1]
 
         return self.k_x_y(image, 1, x_m_m, y_m_m, x_M_M, y_M_M) - self.k_x_y_m(image, 1, x_m_M, y_m_M, x_M_m, y_M_m)
+
+
+class ObjectifSVR:
+    def __init__(self):
+        h5f = h5py.File("coef.h5", 'r')
+        self.coef = np.array(h5f['coef'])
+        h5f.close()
+
+    def f_(self, v):
+        np.dot(v, self.coef)
+
+    def f_plus(self, v):
+        r = np.multiply(v, self.coef)
+        return np.sum((np.abs(r) + r)) / 2
+
+    def f_moins(self, v):
+        r = np.multiply(v, self.coef)
+        return np.sum((- np.abs(r) + r)) / 2
